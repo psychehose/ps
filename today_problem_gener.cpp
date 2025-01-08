@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
-#include <json.hpp> // Include the JSON library
+#include "json.hpp" // Include the JSON library
 
 using json = nlohmann::json;
 
@@ -48,7 +48,7 @@ int main() {
     std::srand(static_cast<unsigned int>(std::time(0)));
 
     // enable 상태 확인 (하드코딩된 예제, 실제로는 외부 입력으로 받을 수 있음)
-    bool enableHard = true;
+    bool enableHard = false;
 
     // 랜덤 인덱스 선택
     int randomEasyIndex = std::rand() % easyProblems.size();
