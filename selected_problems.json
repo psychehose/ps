@@ -1,8 +1,6 @@
 {
-    "Easy": {
-    },
     "Medium": {
-        "id": 55,
-        "title": "Jump Game"
+        "id": 3,
+        "title": "Longest Substring Without Repeating Characters"
     }
 }

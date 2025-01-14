@@ -18,7 +18,7 @@ public:
         return dp[m-1][n-1];
     }
 
-    int uniquePaths(int m, int n) {
+    int uniquePaths2(int m, int n) {
         std::vector<int> aboveRow(n, 1);
 
         for (int row = 1; row < m; row++) {

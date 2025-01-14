@@ -49,6 +49,7 @@ int main() {
 
     // enable 상태 확인 (하드코딩된 예제, 실제로는 외부 입력으로 받을 수 있음)
     bool enableHard = false;
+    bool enableEasy = false;
 
     // 랜덤 인덱스 선택
     int randomEasyIndex = std::rand() % easyProblems.size();
@@ -59,14 +60,16 @@ int main() {
     json outputJson;
 
     // 선택된 문제 추가
-    outputJson["Easy"] = {
-        {"id", easyProblems[randomEasyIndex].first},
-        {"title", easyProblems[randomEasyIndex].second}
-    };
     outputJson["Medium"] = {
         {"id", mediumProblems[randomMediumIndex].first},
         {"title", mediumProblems[randomMediumIndex].second}
     };
+    if (enableEasy) {
+        outputJson["Easy"] = {
+            {"id", easyProblems[randomEasyIndex].first},
+            {"title", easyProblems[randomEasyIndex].second}
+        };
+    }
     if (enableHard) {
         outputJson["Hard"] = {
             {"id", hardProblems[randomHardIndex].first},
@@ -80,8 +83,10 @@ int main() {
     outputFile.close();
 
     // 콘솔 출력
+    if (enableEasy) {
     std::cout << "Today's Easy problem: [" << easyProblems[randomEasyIndex].first << "] "
               << easyProblems[randomEasyIndex].second << std::endl;
+    }
     std::cout << "Today's Medium problem: [" << mediumProblems[randomMediumIndex].first << "] "
               << mediumProblems[randomMediumIndex].second << std::endl;
     if (enableHard) {
