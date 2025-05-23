@@ -1,4 +1,5 @@
 #include "json.hpp" // Include the JSON library
+#include <algorithm>
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
@@ -7,6 +8,56 @@
 #include <vector>
 
 using json = nlohmann::json;
+
+// 이미 해결한 문제 목록을 불러오는 함수
+std::vector<int> loadSolvedProblems() {
+  std::vector<int> solvedProblems;
+  std::ifstream file("selected_problems.json");
+
+  if (file.is_open()) {
+    try {
+      json j;
+      file >> j;
+
+      // JSON 배열에서 문제 번호 추출
+      for (const auto &item : j) {
+        solvedProblems.push_back(item.get<int>());
+      }
+    } catch (const std::exception &e) {
+      std::cerr << "Error parsing JSON: " << e.what() << std::endl;
+    }
+    file.close();
+  } else {
+    std::cerr << "Could not open selected_problems.json" << std::endl;
+  }
+
+  return solvedProblems;
+}
+
+// 아직 풀지 않은 문제 중에서 랜덤으로 선택하는 함수
+int getRandomUnsolvedProblem(
+    const std::vector<std::pair<int, std::string>> &problems,
+    const std::vector<int> &solvedProblems) {
+  std::vector<int> unsolvedIndices;
+
+  // 아직 풀지 않은 문제 인덱스 찾기
+  for (size_t i = 0; i < problems.size(); i++) {
+    int problemId = problems[i].first;
+    if (std::find(solvedProblems.begin(), solvedProblems.end(), problemId) ==
+        solvedProblems.end()) {
+      unsolvedIndices.push_back(i);
+    }
+  }
+
+  // 풀지 않은 문제가 없는 경우
+  if (unsolvedIndices.empty()) {
+    return -1;
+  }
+
+  // 랜덤으로 선택
+  int randomIndex = std::rand() % unsolvedIndices.size();
+  return unsolvedIndices[randomIndex];
+}
 
 int main() {
   // 문제 리스트 생성
@@ -77,49 +128,60 @@ int main() {
   // 랜덤 시드 초기화
   std::srand(static_cast<unsigned int>(std::time(0)));
 
-  // enable 상태 확인 (하드코딩된 예제, 실제로는 외부 입력으로 받을 수 있음)
-  bool enableHard = false;
-  bool enableEasy = false;
+  // 이미 해결한 문제 목록 불러오기
+  std::vector<int> solvedProblems = loadSolvedProblems();
 
-  // 랜덤 인덱스 선택
-  int randomEasyIndex = std::rand() % easyProblems.size();
-  int randomMediumIndex = std::rand() % mediumProblems.size();
-  int randomHardIndex = enableHard ? (std::rand() % hardProblems.size()) : -1;
+  // 사용자 입력 받기
+  std::string difficulty;
+  bool validInput = false;
 
-  // JSON 파일 저장을 위한 데이터 구조
-  json outputJson;
+  while (!validInput) {
+    std::cout << "난이도를 입력하세요 (easy, medium, hard): ";
+    std::cin >> difficulty;
 
-  // 선택된 문제 추가
-  outputJson["Medium"] = {{"id", mediumProblems[randomMediumIndex].first},
-                          {"title", mediumProblems[randomMediumIndex].second}};
-  if (enableEasy) {
-    outputJson["Easy"] = {{"id", easyProblems[randomEasyIndex].first},
-                          {"title", easyProblems[randomEasyIndex].second}};
+    // 소문자로 변환
+    std::transform(difficulty.begin(), difficulty.end(), difficulty.begin(),
+                   ::tolower);
+
+    if (difficulty == "easy" || difficulty == "medium" ||
+        difficulty == "hard") {
+      validInput = true;
+    } else {
+      std::cout << "잘못된 입력입니다. easy, medium, hard 중 하나를 입력하세요."
+                << std::endl;
+    }
   }
-  if (enableHard) {
-    outputJson["Hard"] = {{"id", hardProblems[randomHardIndex].first},
-                          {"title", hardProblems[randomHardIndex].second}};
-  }
 
-  // JSON 출력
-  std::ofstream outputFile("selected_problems.json");
-  outputFile << outputJson.dump(
-      4); // JSON 데이터를 파일에 저장 (4는 들여쓰기 수준)
-  outputFile.close();
+  // 선택된 난이도에 따라 랜덤 문제 선택
+  int selectedIndex = -1;
 
-  // 콘솔 출력
-  if (enableEasy) {
-    std::cout << "Today's Easy problem: ["
-              << easyProblems[randomEasyIndex].first << "] "
-              << easyProblems[randomEasyIndex].second << std::endl;
-  }
-  std::cout << "Today's Medium problem: ["
-            << mediumProblems[randomMediumIndex].first << "] "
-            << mediumProblems[randomMediumIndex].second << std::endl;
-  if (enableHard) {
-    std::cout << "Today's Hard problem: ["
-              << hardProblems[randomHardIndex].first << "] "
-              << hardProblems[randomHardIndex].second << std::endl;
+  if (difficulty == "easy") {
+    selectedIndex = getRandomUnsolvedProblem(easyProblems, solvedProblems);
+    if (selectedIndex != -1) {
+      std::cout << "Today's Easy problem: ["
+                << easyProblems[selectedIndex].first << "] "
+                << easyProblems[selectedIndex].second << std::endl;
+    } else {
+      std::cout << "모든 Easy 문제를 이미 해결했습니다!" << std::endl;
+    }
+  } else if (difficulty == "medium") {
+    selectedIndex = getRandomUnsolvedProblem(mediumProblems, solvedProblems);
+    if (selectedIndex != -1) {
+      std::cout << "Today's Medium problem: ["
+                << mediumProblems[selectedIndex].first << "] "
+                << mediumProblems[selectedIndex].second << std::endl;
+    } else {
+      std::cout << "모든 Medium 문제를 이미 해결했습니다!" << std::endl;
+    }
+  } else if (difficulty == "hard") {
+    selectedIndex = getRandomUnsolvedProblem(hardProblems, solvedProblems);
+    if (selectedIndex != -1) {
+      std::cout << "Today's Hard problem: ["
+                << hardProblems[selectedIndex].first << "] "
+                << hardProblems[selectedIndex].second << std::endl;
+    } else {
+      std::cout << "모든 Hard 문제를 이미 해결했습니다!" << std::endl;
+    }
   }
 
   return 0;

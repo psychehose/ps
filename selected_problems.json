@@ -1,6 +1,13 @@
-{
-    "Medium": {
-        "id": 33,
-        "title": "Search in Rotated Sorted Array"
-    }
-}
+[
+  3,
+  21,
+  55,
+  62,
+  70,
+  152,
+  198,
+  200,
+  213,
+  271,
+  424
+]
